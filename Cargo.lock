@@ -2714,6 +2714,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "junction"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "642883fdc81cf2da15ee8183fa1d2c7da452414dd41541a0f3e1428069345447"
+dependencies = [
+ "scopeguard",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "konst"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7129,12 +7139,18 @@ dependencies = [
 name = "vite_global_cli"
 version = "0.0.0"
 dependencies = [
+ "base64-simd",
  "chrono",
  "clap",
+ "flate2",
+ "junction",
+ "node-semver",
  "owo-colors",
  "serde",
  "serde_json",
  "serial_test",
+ "sha2",
+ "tar",
  "tempfile",
  "thiserror 2.0.17",
  "tokio",

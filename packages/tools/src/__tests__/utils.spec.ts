@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, test } from '@voidzero-dev/vite-plus-test';
@@ -198,6 +198,17 @@ line 3
 "vite-plus-core": "^0.0.0-43b91ac4e4bc63ba78dee8a813806bdbaa7a4378"
     `;
     expect(replaceUnstableOutput(output.trim())).toMatchSnapshot();
+  });
+
+  test.skipIf(process.platform === 'win32')('replace vite-plus home paths', () => {
+    const home = homedir();
+    const output = [
+      `${home}/.vite-plus/js_runtime/node/v20.18.0/bin/node`,
+      `${home}/.vite-plus/packages/cowsay/lib/node_modules/cowsay/./cli.js`,
+      `${home}/.vite-plus`,
+      `${home}/.vite-plus/bin`,
+    ].join('\n');
+    expect(replaceUnstableOutput(output)).toMatchSnapshot();
   });
 
   test('replace ignore npm warn exec The following package was not found and will be installed: cowsay@<semver> warning log', () => {
