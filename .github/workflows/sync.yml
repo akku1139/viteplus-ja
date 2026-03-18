@@ -19,20 +19,30 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - run: git init
+      - uses: actions/cache@v5
+        id: cache
+        with:
+          path: .
+          key: sync-cache-${{ github.sha }}
+          restore-keys: sync-cache-
+
+      - if: cache.outputs.cache-hit != 'true'
       - run: |
+          git init
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-      - run: |
           git remote add ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
           git remote add up https://github.com/voidzero-dev/vite-plus
+
+      - if: cache.outputs.cache-hit
+      - run: git remote set-url ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+
         # --filter=blob:none をつける意味はあまり無い
       - run: |
           git fetch ja main sync/subtree sync/upstream
           git fetch up main
         # force-pushされた場合ここで落ちる
       - run: git push ${{ inputs.push-args }} ja up/main ja/sync/upstream
-      - run: git remote remove up
         # syncを実体化しておく
       - run: git switch sync/subtree
       - run: git switch sync/upstream
