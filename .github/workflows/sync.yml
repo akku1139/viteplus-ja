@@ -23,6 +23,7 @@ jobs:
         id: cache
         with:
           path: .
+          # sync/upstream ブランチのハッシュを取るのが理想
           key: sync-cache-${{ github.sha }}
           restore-keys: sync-cache-
 
@@ -36,18 +37,22 @@ jobs:
           git fetch ja main
           git switch -t ja/main
 
+        # ワークフローのtokenに合わせて更新
       - if: steps.cache.outputs.cache-hit
         run: git remote set-url ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
 
-        # --filter=blob:none をつける意味はあまり無い
+        # --filter=blob:none をつける意味は現状あまり無い
       - run: |
           git fetch ja main sync/subtree sync/upstream
           git fetch up main
         # force-pushされた場合ここで落ちる
       - run: git push ${{ inputs.push-args }} ja up/main:sync/upstream
         # syncを実体化しておく
-      - run: git switch sync/subtree
-      - run: git switch sync/upstream
+      - run: |
+          git switch sync/subtree
+          git pull
+          git switch sync/upstream
+          git pull
         # これが結構遅い
       - run: git subtree split --prefix=docs -b sync/subtree
       - run: git push ${{ inputs.push-args }} ja sync/subtree
