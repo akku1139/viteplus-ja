@@ -28,7 +28,7 @@ jobs:
 
         # ワークフローのtokenに合わせて更新
       - run: |
-          if [[ -d .gits ]]; then
+          if [[ -d .git ]]; then
             git remote set-url ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
           else
             git init
