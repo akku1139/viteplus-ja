@@ -33,6 +33,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote add ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
           git remote add up https://github.com/voidzero-dev/vite-plus
+          git fetch ja main
           git switch -t ja/main
 
       - if: steps.cache.outputs.cache-hit
