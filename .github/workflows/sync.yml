@@ -27,7 +27,7 @@ jobs:
           key: sync-cache-${{ github.sha }}
           restore-keys: sync-cache-
 
-      - if: steps.cache.outputs.cache-hit != 'true'
+      - if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           git init
           git config user.name "github-actions[bot]"
