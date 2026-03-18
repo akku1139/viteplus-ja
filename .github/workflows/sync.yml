@@ -20,11 +20,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: git init
-      - run: git remote add ja https://github.com/${{ github.repository }}
-      - run: git remote add up https://github.com/voidzero-dev/vite-plus
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - run: |
+          git remote add ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+          git remote add up https://github.com/voidzero-dev/vite-plus
         # --filter=blob:none をつける意味はあまり無い
-      - run: git fetch ja main sync upstream-full
-      - run: git fetch up main
+      - run: |
+          git fetch ja main sync upstream-full
+          git fetch up main
         # force-pushされた場合ここで落ちる
       - run: git push ${{ inputs.push-args }} ja up/main ja/upstream-full
       - run: git remote remove up
