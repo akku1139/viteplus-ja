@@ -7,7 +7,7 @@ on:
         description: 'git push args (e.g, -f)'
         default: ''
   schedule:
-    - cron: '47 5 * * *'
+    - cron: '39 8 * * *'
 
 concurrency:
   group: main
