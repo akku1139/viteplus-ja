@@ -20,26 +20,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v5
-        id: cache
         with:
           path: .
           # sync/upstream ブランチのハッシュを取るのが理想
           key: sync-cache-${{ github.sha }}
           restore-keys: sync-cache-
 
-      - if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          git init
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote add ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
-          git remote add up https://github.com/voidzero-dev/vite-plus
-          git fetch ja main
-          git switch -t ja/main
-
         # ワークフローのtokenに合わせて更新
-      - if: steps.cache.outputs.cache-hit
-        run: git remote set-url ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+      - run: |
+          if [[ -d .gits ]]; then
+            git remote set-url ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+          else
+            git init
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git remote add ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+            git remote add up https://github.com/voidzero-dev/vite-plus
+            git fetch ja main
+            git switch -t ja/main
+          fi
 
         # --filter=blob:none をつける意味は現状あまり無い
       - run: |
