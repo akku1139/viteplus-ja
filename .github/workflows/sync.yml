@@ -12,9 +12,6 @@ on:
 concurrency:
   group: main
 
-permissions:
-  contents: write
-
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -26,27 +23,30 @@ jobs:
           key: sync-cache-${{ github.sha }}
           restore-keys: sync-cache-
 
-        # ワークフローのtokenに合わせて更新
       - run: |
-          if [[ -d .git ]]; then
-            git remote set-url ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
-          else
+          cat > /tmp/key.private << EOL
+          ${{ secrets.SYNC_PRIVATE_KEY }}
+          EOL
+          chmod 600 /tmp/key.private
+
+          if [[ ! -d .git ]]; then
             git init
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git remote add ja https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+            git config core.sshCommand "ssh -i /tmp/key.private -F /dev/null"
+            git remote add ja git@github.com:${{ github.repository }}
             git remote add up https://github.com/voidzero-dev/vite-plus
             git fetch ja main
             git switch -t ja/main
           fi
 
-        # --filter=blob:none をつける意味は現状あまり無い
+      # --filter=blob:none をつける意味は現状あまり無い
       - run: |
           git fetch ja main sync/subtree sync/upstream
           git fetch up main
         # force-pushされた場合ここで落ちる
       - run: git push ${{ inputs.push-args }} ja up/main:sync/upstream
-        # syncを実体化しておく
+      # syncを実体化しておく
       - run: |
           git switch sync/subtree
           git pull
@@ -55,10 +55,10 @@ jobs:
         # これが結構遅い
       - run: git subtree split --prefix=docs -b sync/subtree
       - run: git push ${{ inputs.push-args }} ja sync/subtree
-        # 自動同期を試みる
+      # 自動同期を試みる
       - run: |
           git switch main
           git pull
-        # コンフリクトが起きたらここで落ちる
+      # コンフリクトが起きたらここで落ちる
       - run: git merge sync/subtree
       - run: git push
