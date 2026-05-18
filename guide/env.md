@@ -6,7 +6,7 @@
 
 Managed mode is on by default, so `node`, `npm`, and related shims resolve through Vite+ and pick the right Node.js version for the current project.
 
-By default, Vite+ stores its managed runtime and related files in `~/.vite-plus`. If needed, you can override that location with `VITE_PLUS_HOME`.
+By default, Vite+ stores its managed runtime and related files in `~/.vite-plus`. If needed, you can override that location with `VP_HOME`.
 
 If you want to keep that behavior, run:
 
@@ -28,10 +28,32 @@ This switches to system-first mode, where the shims prefer your system Node.js a
 
 ### Setup
 
-- `vp env setup` creates or updates shims in `VITE_PLUS_HOME/bin`
+- `vp env setup` creates or updates shims in `VP_HOME/bin` (and writes the per-shell setup scripts under `~/.vite-plus/`)
 - `vp env on` enables managed mode so shims always use Vite+-managed Node.js
 - `vp env off` enables system-first mode so shims prefer system Node.js first
 - `vp env print` prints the shell snippet for the current session
+
+PowerShell needs to dot-source the generated setup script in the current shell before `vp env use` can affect only that shell session:
+
+```powershell
+. "$env:USERPROFILE\.vite-plus\env.ps1"
+```
+
+Add that line to the end of your PowerShell `$PROFILE` to apply it automatically in new shells. It does not require elevated privileges.
+
+Create the profile file if it does not already exist:
+
+```powershell
+if (-not (Test-Path $PROFILE)) { New-Item $PROFILE -Force }
+```
+
+Open the profile file for editing:
+
+```powershell
+Invoke-Item $PROFILE
+```
+
+In CI, `vp env use` can still run without shell initialization. It writes a temporary session file under `VP_HOME` so later shim calls in the same job can resolve the selected Node.js version.
 
 ### Manage
 
@@ -42,6 +64,7 @@ This switches to system-first mode, where the shims prefer your system Node.js a
 - `vp env install` installs a Node.js version
 - `vp env uninstall` removes an installed Node.js version
 - `vp env exec` runs a command with a specific Node.js version
+- `vp node` runs a Node.js script — shorthand for `vp env exec node`
 
 ### Inspect
 
@@ -81,4 +104,21 @@ vp env list-remote --lts      # List only LTS versions
 # Execute
 vp env exec --node lts npm i  # Execute npm with latest LTS
 vp env exec node -v           # Use shim mode with automatic version resolution
+vp node script.js             # Shorthand: run a Node.js script with the resolved version
+vp node -e "console.log(1+1)" # Shorthand: forward any node flag or argument
+```
+
+## Custom Node.js Mirror
+
+By default, Vite+ downloads Node.js from `https://nodejs.org/dist`. If you're behind a corporate proxy or need to use an internal mirror (e.g., Artifactory), set the `VP_NODE_DIST_MIRROR` environment variable:
+
+```bash
+# Install a specific version from your custom mirror
+VP_NODE_DIST_MIRROR=https://my-mirror.example.com/nodejs/dist vp env install 22
+
+# Set the global default version using a custom mirror
+VP_NODE_DIST_MIRROR=https://my-mirror.example.com/nodejs/dist vp env default lts
+
+# Set it permanently in your shell profile (.bashrc, .zshrc, etc.)
+echo 'export VP_NODE_DIST_MIRROR=https://my-mirror.example.com/nodejs/dist' >> ~/.zshrc
 ```
